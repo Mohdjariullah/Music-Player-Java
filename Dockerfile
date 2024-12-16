@@ -1,14 +1,14 @@
 # Use the official OpenJDK 17 image
-FROM openjdk:17-jdk-slim
-
-# Set the working directory
+# Stage 1: Build the application
+FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Copy the built JAR file into the container
-COPY target/musicplayer-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose the port that the app runs on
+# Stage 2: Run the application
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Start the Spring Boot application
 ENTRYPOINT ["java", "-jar", "app.jar"]
